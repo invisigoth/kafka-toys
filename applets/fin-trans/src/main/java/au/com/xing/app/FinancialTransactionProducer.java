@@ -11,6 +11,9 @@ import org.yaml.snakeyaml.Yaml;
 
 import org.apache.commons.math3.random.MersenneTwister; // prefer MT19937 random
 
+import au.com.xing.util.ReferenceDataLoader;
+import au.com.xing.generator.TransactionGenerator;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
@@ -24,12 +27,7 @@ public class FinancialTransactionProducer {
     private final Producer<String, String> producer;
     private final ObjectMapper objectMapper;
     private final MersenneTwister random;
-
-    // Remove final keyword from these lists
-    private List<String> australianBanks;
-    private List<String> transactionTypes;
-    private List<String> firstNames;
-    private List<String> lastNames;
+    private final TransactionGenerator transactionGenerator;
 
     // Configs
     private final String topicName;
@@ -71,6 +69,7 @@ public class FinancialTransactionProducer {
     public FinancialTransactionProducer() throws IOException {
         this.objectMapper = new ObjectMapper();
         this.random = new MersenneTwister(System.currentTimeMillis());
+        this.transactionGenerator = new TransactionGenerator();
 
         // Load config from YAML, and init Producer with the props
         Properties configProps = loadConfiguration();
@@ -112,66 +111,6 @@ public class FinancialTransactionProducer {
         System.out.println("Topic: " + topicName);
         System.out.println("Transactions per second: " + transactionsPerSecond);
 
-        try {
-            initReferenceData();
-        } catch (IOException e) {
-            System.err.println("Failed to init reference data: " + e.getMessage());
-            e.printStackTrace();
-            System.exit(1);
-        }
-    }
-
-    public static class ReferenceDataLoader {
-        private static final ObjectMapper mapper = new ObjectMapper();
-
-        public static List<String> loadList(String resourcePath) throws IOException {
-            try (InputStream is = ReferenceDataLoader.class.getResourceAsStream(resourcePath)) {
-                if (is == null) {
-                    throw new IOException("Resource not found: " + resourcePath);
-                }
-                return mapper.readValue(is, new TypeReference<List<String>>() {
-                });
-            }
-        }
-    }
-
-    private void initReferenceData() throws IOException {
-        australianBanks = ReferenceDataLoader.loadList("/reference-data/bsb.json");
-        transactionTypes = ReferenceDataLoader.loadList("/reference-data/trans-types.json");
-        firstNames = ReferenceDataLoader.loadList("/reference-data/first-names.json");
-        lastNames = ReferenceDataLoader.loadList("/reference-data/last-names.json");
-    }
-
-    private String generateBSB() {
-        String bankCode = australianBanks.get(random.nextInt(australianBanks.size()));
-        String branchCode = String.format("%03d", random.nextInt(1000));
-        return bankCode + branchCode;
-    }
-
-    private String generateAccountNumber() {
-        return String.format("%08d", random.nextInt(100000000));
-    }
-
-    private String generateAccountName() {
-        String firstName = firstNames.get(random.nextInt(firstNames.size()));
-        String lastName = lastNames.get(random.nextInt(lastNames.size()));
-        return firstName + " " + lastName;
-    }
-
-    private double generateAmount() {
-        if (random.nextDouble() < 0.3) {
-            return ThreadLocalRandom.current().nextDouble(100000, 500000);
-        } else if (random.nextDouble() < 0.1) {
-            return ThreadLocalRandom.current().nextDouble(5000, 25000);
-        } else {
-            return ThreadLocalRandom.current().nextDouble(10, 2000);
-        }
-    }
-
-    private String generateTransactionReference() {
-        String type = transactionTypes.get(random.nextInt(transactionTypes.size()));
-        String reference = String.format("REF-%06d", random.nextInt(1000000));
-        return type + " - " + reference;
     }
 
     private ObjectNode createTransaction(String accountNumber) {
@@ -180,18 +119,18 @@ public class FinancialTransactionProducer {
         transaction.put("transactionId", UUID.randomUUID().toString());
         transaction.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
 
-        transaction.put("fromBSB", generateBSB());
-        transaction.put("fromAccountNumber", accountNumber);
-        transaction.put("fromAccountName", generateAccountName());
+        transaction.put("fromBSB", transactionGenerator.generateBSB());
+        transaction.put("fromAccountNumber", transactionGenerator.generateAccountNumber());
+        transaction.put("fromAccountName", transactionGenerator.generateAccountName());
 
-        transaction.put("toBSB", generateBSB());
-        transaction.put("toAccountNumber", generateAccountNumber());
-        transaction.put("toAccountName", generateAccountName());
+        transaction.put("toBSB", transactionGenerator.generateBSB());
+        transaction.put("toAccountNumber", transactionGenerator.generateAccountNumber());
+        transaction.put("toAccountName", transactionGenerator.generateAccountName());
 
-        double amount = generateAmount();
+        double amount = transactionGenerator.generateAmount();
         transaction.put("amount", Math.round(amount * 100.0) / 100.0);
         transaction.put("currency", "AUD");
-        transaction.put("reference", generateTransactionReference());
+        transaction.put("reference", transactionGenerator.generateTransactionReference());
 
         transaction.put("channel", random.nextDouble() < 0.7 ? "ONLINE" : "BRANCH");
 
@@ -213,8 +152,7 @@ public class FinancialTransactionProducer {
         try {
             while (true) {
                 String accountNumber;
-
-                accountNumber = generateAccountNumber();
+                accountNumber = transactionGenerator.generateAccountNumber();
 
                 ObjectNode transaction = createTransaction(accountNumber);
                 ProducerRecord<String, String> record = new ProducerRecord<>(
