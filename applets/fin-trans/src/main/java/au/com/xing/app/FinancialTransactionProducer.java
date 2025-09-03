@@ -9,8 +9,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.yaml.snakeyaml.Yaml;
 
-import org.apache.commons.math3.random.MersenneTwister; // prefer MT19937 random
-
 import au.com.xing.util.ReferenceDataLoader;
 import au.com.xing.generator.TransactionGenerator;
 
@@ -19,6 +17,7 @@ import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import org.apache.commons.math3.random.MersenneTwister; // prefer MT19937 random
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 

@@ -2,7 +2,7 @@ package au.com.xing.generator;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Random;
+import org.apache.commons.math3.random.MersenneTwister; // prefer MT19937 random
 import java.util.concurrent.ThreadLocalRandom;
 import au.com.xing.util.ReferenceDataLoader;
 
@@ -13,7 +13,7 @@ public class TransactionGenerator {
     private List<String> firstNames;
     private List<String> lastNames;
 
-    private final Random random = new Random();
+    private final MersenneTwister random = new MersenneTwister(System.currentTimeMillis());
 
     public TransactionGenerator() throws IOException {
         try {
