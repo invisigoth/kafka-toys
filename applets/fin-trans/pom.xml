@@ -76,7 +76,7 @@
                         <configuration>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>FinancialTransactionProducer</mainClass>
+                                    <mainClass>au.com.xing.app.FinancialTransactionProducer</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>

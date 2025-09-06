@@ -26,7 +26,7 @@
             <configuration>
               <transformers>
                 <transformer>
-                  <mainClass>FinancialTransactionProducer</mainClass>
+                  <mainClass>au.com.xing.app.FinancialTransactionProducer</mainClass>
                 </transformer>
               </transformers>
             </configuration>

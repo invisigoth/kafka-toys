@@ -1,3 +1,5 @@
+package au.com.xing.app;
+
 import au.com.xing.util.ReferenceDataLoader;
 import au.com.xing.generator.TransactionGenerator;
 import au.com.xing.kafka.KafkaProducerService;
@@ -5,8 +7,16 @@ import au.com.xing.kafka.KafkaProducerService;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Entry point
+ */
 public class FinancialTransactionProducer {
 
+    /**
+     * Main entry point for the application.
+     *
+     * @param args - command-line arguments (not in use)
+     */
     public static void main(String[] args) {
         try {
             List<String> australianBanks = ReferenceDataLoader.loadList("/reference-data/bsb.json");
@@ -19,7 +29,7 @@ public class FinancialTransactionProducer {
             KafkaProducerService producerService = new KafkaProducerService(generator);
             producerService.produce();
         } catch (IOException e) {
-            System.err.println("Failed to init producer: " + e.getMessage());
+            System.err.println("Failed to initialise producer: " + e.getMessage());
             e.printStackTrace();
             System.exit(1); // Exit with error code 1
         }
