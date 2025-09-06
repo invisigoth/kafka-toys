@@ -2,7 +2,7 @@ package au.com.xing.generator;
 
 import java.io.IOException;
 import java.util.List;
-import org.apache.commons.math3.random.MersenneTwister; // prefer MT19937 random
+import org.apache.commons.math3.random.MersenneTwister;
 import java.util.concurrent.ThreadLocalRandom;
 import au.com.xing.util.ReferenceDataLoader;
 
@@ -15,21 +15,15 @@ public class TransactionGenerator {
 
     private final MersenneTwister random = new MersenneTwister(System.currentTimeMillis());
 
-    public TransactionGenerator() throws IOException {
-        try {
-            initReferenceData();
-        } catch (IOException e) {
-            System.err.println("Failed to init reference data: " + e.getMessage());
-            e.printStackTrace();
-            System.exit(1);
-        }
-    }
-
-    private void initReferenceData() throws IOException {
-        australianBanks = ReferenceDataLoader.loadList("/reference-data/bsb.json");
-        transactionTypes = ReferenceDataLoader.loadList("/reference-data/trans-types.json");
-        firstNames = ReferenceDataLoader.loadList("/reference-data/first-names.json");
-        lastNames = ReferenceDataLoader.loadList("/reference-data/last-names.json");
+    // ✅ Constructor
+    public TransactionGenerator(List<String> australianBanks,
+                                List<String> transactionTypes,
+                                List<String> firstNames,
+                                List<String> lastNames) {
+        this.australianBanks = australianBanks;
+        this.transactionTypes = transactionTypes;
+        this.firstNames = firstNames;
+        this.lastNames = lastNames;
     }
 
     public String generateBSB() {
