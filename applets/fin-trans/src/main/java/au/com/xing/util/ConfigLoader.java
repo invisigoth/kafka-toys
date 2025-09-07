@@ -8,6 +8,10 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
 
+
+/**
+ * Utility class for loading config props from a YAML file.
+ */
 public class ConfigLoader {
 
     private static final Logger LOGGER = Logger.getLogger(ConfigLoader.class.getName());
